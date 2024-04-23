@@ -18,40 +18,14 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # find dependencies
-find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(dmabuf_transport REQUIRED)
-find_package(OpenCV REQUIRED)
-find_package(cv_bridge REQUIRED)
+find_package(ament_cmake_auto REQUIRED)
+ament_auto_find_build_dependencies()
 
-include_directories(include)
-
-add_library(${PROJECT_NAME} SHARED
+ament_auto_add_library(${PROJECT_NAME} SHARED
   src/type/image.cpp
+  src/type/imu.cpp
+  src/image_utils.cpp
 )
-
-ament_target_dependencies(${PROJECT_NAME}
-  rclcpp
-  sensor_msgs
-  dmabuf_transport
-  OpenCV
-  cv_bridge
-)
-
-install(
-  TARGETS ${PROJECT_NAME}
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  RUNTIME DESTINATION bin
-)
-
-install(DIRECTORY
-  include/
-  DESTINATION include
-)
-
-ament_export_include_directories(include)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -59,21 +33,22 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 
-  add_executable(${PROJECT_NAME}_image_test
-    test/image_test.cpp
-  )
-  ament_target_dependencies(${PROJECT_NAME}_image_test
-    rclcpp
-    sensor_msgs
-  )
-  target_link_libraries(${PROJECT_NAME}_image_test
-    dmabuf_transport
-    ${PROJECT_NAME}
+  ament_auto_add_gtest(${PROJECT_NAME}_image_test_pub test/image_test.cpp)
+  target_compile_definitions(${PROJECT_NAME}_image_test_pub PRIVATE "-DTEST_PUBLISHER")
+
+  ament_auto_add_gtest(${PROJECT_NAME}_image_test_sub test/image_test.cpp)
+  target_compile_definitions(${PROJECT_NAME}_image_test_sub PRIVATE "-DTEST_SUBSCRIBER")
+
+  ament_auto_add_gtest(${PROJECT_NAME}_image_utils_test
+    test/image_utils_test.cpp
   )
 
-  install(TARGETS
-    ${PROJECT_NAME}_image_test DESTINATION lib
-  )
+  ament_auto_add_gtest(${PROJECT_NAME}_imu_test_pub test/imu_test.cpp)
+  target_compile_definitions(${PROJECT_NAME}_imu_test_pub PRIVATE "-DTEST_PUBLISHER")
+
+  ament_auto_add_gtest(${PROJECT_NAME}_imu_test_sub test/imu_test.cpp)
+  target_compile_definitions(${PROJECT_NAME}_imu_test_sub PRIVATE "-DTEST_SUBSCRIBER")
+
 endif()
 
-ament_package()
+ament_auto_package()

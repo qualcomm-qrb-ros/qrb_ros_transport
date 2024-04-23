@@ -7,58 +7,26 @@
 #include <cstring>
 #include <memory>
 
-#include "dmabuf_transport/dmabuf_type_adapter.hpp"
+#include "lib_mem_dmabuf/dmabuf.hpp"
+#include "qrb_ros_transport/image_utils.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/type_adapter.hpp"
 #include "sensor_msgs/image_encodings.hpp"
 #include "sensor_msgs/msg/image.hpp"
 
-#define ALIGN(x, y) (((x) + (y)-1) & (~((y)-1)))
-#define ALIGN_HEIGHT 32
-#define ALIGN_WIDTH 128
-
-namespace qrb_ros
-{
-namespace transport
-{
-namespace type
+namespace qrb_ros::transport::type
 {
 
-struct Image : public dmabuf_transport::DmaBufTypeAdapter<sensor_msgs::msg::Image>
+struct Image
 {
-  explicit Image() = default;
-  ~Image() {}
-
-  uint32_t get_align_width() const { return align_width_; }
-  void set_align_width(const uint32_t& width) { align_width_ = width; }
-
-  uint32_t get_align_height() const { return align_height_; }
-  void set_align_height(const uint32_t& height) { align_height_ = height; }
-
-  void set_message(const sensor_msgs::msg::Image& message)
-  {
-    header = message.header;
-    sensor_msgs::msg::Image msg;
-    msg.height = message.height;
-    msg.width = message.width;
-    msg.step = message.step;
-    msg.encoding = message.encoding;
-    set_ros_message(msg);
-  }
-
-  void get_ros_data(uint8_t* dst) const;
-  void save_ros_data(const uint8_t* src) const;
-
   std_msgs::msg::Header header;
-
-private:
-  uint32_t align_height_;
-  uint32_t align_width_;
+  int width{ 0 };
+  int height{ 0 };
+  std::string encoding{ "" };
+  std::shared_ptr<lib_mem_dmabuf::DmaBuffer> dmabuf{ nullptr };
 };
 
-}  // namespace type
-}  // namespace transport
-}  // namespace qrb_ros
+}  // namespace qrb_ros::transport::type
 
 template <>
 struct rclcpp::TypeAdapter<qrb_ros::transport::type::Image, sensor_msgs::msg::Image>
@@ -67,43 +35,67 @@ struct rclcpp::TypeAdapter<qrb_ros::transport::type::Image, sensor_msgs::msg::Im
   using custom_type = qrb_ros::transport::type::Image;
   using ros_message_type = sensor_msgs::msg::Image;
 
-  static void convert_to_ros_message(const custom_type& source, ros_message_type& destination)
+  static void convert_to_ros_message(const custom_type & source, ros_message_type & destination)
   {
+    RCLCPP_DEBUG(rclcpp::get_logger("qrb_ros_transport"), "convert_to_ros_message");
+
+    if (!qrb_ros::transport::image_utils::is_support_encoding(source.encoding)) {
+      RCLCPP_ERROR_STREAM(rclcpp::get_logger("qrb_ros_transport"),
+          "image: encoding " << source.encoding << " not support");
+      return;
+    }
+
     destination.header = source.header;
-    // copy message informations, not include data
-    destination = source.get_ros_message();
-    destination.encoding = "bgr8";
-    // copy message data
-    int height = source.get_ros_message().height;
-    int width = source.get_ros_message().width;
-    int size = height * width * 3;
-    destination.data.resize(size);
-    source.get_ros_data(destination.data.data());
+    destination.width = source.width;
+    destination.height = source.height;
+    destination.encoding = source.encoding;
+
+    auto stride = qrb_ros::transport::image_utils::get_image_stride(source.width, source.encoding);
+    destination.step = stride;
+
+    // read image data from dmabuf
+    destination.data.resize(qrb_ros::transport::image_utils::get_image_align_size(
+        source.width, source.height, source.encoding));
+
+    if (!qrb_ros::transport::image_utils::read_image_from_dmabuf(source.dmabuf,
+            (char *)destination.data.data(), destination.width, destination.height,
+            destination.step, destination.encoding, true)) {
+      RCLCPP_ERROR(rclcpp::get_logger("qrb_ros_transport"), "image: read from dmabuf failed");
+      return;
+    }
   }
 
-  static void convert_to_custom(const ros_message_type& source, custom_type& destination)
+  static void convert_to_custom(const ros_message_type & source, custom_type & destination)
   {
-    if (!sensor_msgs::image_encodings::isColor(source.encoding)) {
-      RCLCPP_ERROR(rclcpp::get_logger("qrb_ros_image_type_adapter"),
-          "convert_to_custom failed because source is not color");
+    RCLCPP_DEBUG(rclcpp::get_logger("qrb_ros_transport"), "convert_to_custom");
+
+    if (!qrb_ros::transport::image_utils::is_support_encoding(source.encoding)) {
+      RCLCPP_ERROR_STREAM(rclcpp::get_logger("qrb_ros_transport"),
+          "image: encoding " << source.encoding << " not support");
       return;
     }
-    auto heap = "/dev/dma_heap/qcom,system";
-    uint32_t align_height = ALIGN(source.height, ALIGN_HEIGHT);
-    uint32_t align_width = ALIGN(source.width, ALIGN_WIDTH);
-    uint32_t size = align_width * align_height;
-    size += align_height % 64 == 0 ? align_height * align_width * 0.5 :
-                                     (((align_height >> 6) + 1) << 5) * align_width;
-    auto dmabuf = dmabuf_transport::DmaBuffer::alloc(size, heap);
+
+    destination.header = source.header;
+    destination.width = source.width;
+    destination.height = source.height;
+    destination.encoding = source.encoding;
+
+    // save image data to dmabuf
+    auto buf_size = qrb_ros::transport::image_utils::get_image_align_size(
+        source.width, source.height, source.encoding);
+    auto dmabuf = lib_mem_dmabuf::DmaBuffer::alloc(buf_size, "/dev/dma_heap/system");
     if (dmabuf == nullptr) {
-      RCLCPP_ERROR(rclcpp::get_logger("qrb_ros_image_type_adapter"), "dma buffer alloc failed");
+      RCLCPP_ERROR_STREAM(rclcpp::get_logger("qrb_ros_transport"),
+          "image: alloc dmabuf failed, size: " << buf_size);
       return;
     }
-    destination.set_dma_buf(dmabuf);
-    destination.set_message(source);
-    destination.set_align_height(align_height);
-    destination.set_align_width(align_width);
-    destination.save_ros_data(source.data.data());
+
+    if (!qrb_ros::transport::image_utils::save_image_to_dmabuf(dmabuf, source.data.data(),
+            source.width, source.height, source.step, source.encoding, true)) {
+      RCLCPP_ERROR_STREAM(rclcpp::get_logger("qrb_ros_transport"), "image: save to dmabuf failed");
+      return;
+    }
+    destination.dmabuf = dmabuf;
   }
 };
 
