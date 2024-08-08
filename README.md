@@ -26,6 +26,7 @@ Currently, we only support build with QCLINUX SDK.
      ```
 
 3. Clone this repository and dependencies under `<qirp_decompressed_workspace>/qirp-sdk/ros_ws`
+
      ```bash
      cd <qirp_decompressed_workspace>/qirp-sdk/ros_ws
      git clone https://github.com/quic-qrb-ros/lib_mem_dmabuf.git
@@ -34,6 +35,7 @@ Currently, we only support build with QCLINUX SDK.
      ```
 
 4. Build projects
+
      ```bash
      export AMENT_PREFIX_PATH="${OECORE_TARGET_SYSROOT}/usr;${OECORE_NATIVE_SYSROOT}/usr"
      export PYTHONPATH=${PYTHONPATH}:${OECORE_TARGET_SYSROOT}/usr/lib/python3.10/site-packages
@@ -47,7 +49,6 @@ Currently, we only support build with QCLINUX SDK.
      ```
 
 ## Zero Copy Transport with qrb_ros_transport
-
 
 1. Add dependencies in your package.xml
 
@@ -92,11 +93,11 @@ The following table lists current supported types:
 
 ## Supported Platforms
 
-This package is designed and tested to be compatible with ROS 2 Humble running on Qualcom RB3 gen2.
+This package is designed and tested to be compatible with ROS 2 Humble running on Qualcomm RB3 gen2.
 
-| Hardware          | Software          |
-| ----------------- | ----------------- |
-| Qualcomm RB3 gen2 | LE.QCROBOTICS.1.0 |
+| Hardware                                                     | Software          |
+| ------------------------------------------------------------ | ----------------- |
+| [Qualcomm RB3 gen2](https://www.qualcomm.com/developer/hardware/rb3-gen-2-development-kit) | LE.QCROBOTICS.1.0 |
 
 ## Resources
 

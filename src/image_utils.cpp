@@ -48,7 +48,7 @@ int align_total_size(int size)
 int get_image_align_size(int width, int height, const std::string & encoding)
 {
   if (!is_support_encoding(encoding)) {
-    return -1;
+    throw std::runtime_error("unsupported encoding " + encoding);
   }
   auto bbp = bytes_per_pixel(encoding);
   auto size = align_width(width) * align_height(height) * bbp;
@@ -63,7 +63,7 @@ bool is_support_encoding(const std::string & encoding)
 float bytes_per_pixel(const std::string & encoding)
 {
   if (!is_support_encoding(encoding)) {
-    return -1;
+    throw std::runtime_error("unsupported encoding " + encoding);
   }
   return supported_encodings.at(encoding);
 }
@@ -71,7 +71,7 @@ float bytes_per_pixel(const std::string & encoding)
 int get_image_stride(int width, const std::string & encoding)
 {
   if (!is_support_encoding(encoding)) {
-    return -1;
+    throw std::runtime_error("unsupported encoding " + encoding);
   }
   if (encoding == sensor_msgs::image_encodings::RGB8) {
     return align_width(width) * bytes_per_pixel(encoding);
@@ -162,7 +162,7 @@ bool read_image_from_dmabuf(std::shared_ptr<lib_mem_dmabuf::DmaBuffer> dmabuf,
       memcpy(dst, dmabuf->addr(), height * line_size);
     } else {
       for (int i = 0; i < height; i++) {
-        memcpy(dst + i * dst_step, (char *)dmabuf->addr() + i * line_size, line_size);
+        memcpy(dst + i * dst_step, (char *)dmabuf->addr() + i * line_size, dst_step);
       }
     }
   } else if (encoding == "nv12") {
