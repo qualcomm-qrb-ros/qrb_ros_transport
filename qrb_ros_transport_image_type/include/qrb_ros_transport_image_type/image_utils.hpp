@@ -1,8 +1,8 @@
 // Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#ifndef QRB_ROS_TRANSPORT__IMAGE_UTILS_HPP_
-#define QRB_ROS_TRANSPORT__IMAGE_UTILS_HPP_
+#ifndef QRB_ROS_TRANSPORT_IMAGE_TYPE__IMAGE_UTILS_HPP_
+#define QRB_ROS_TRANSPORT_IMAGE_TYPE__IMAGE_UTILS_HPP_
 
 #include "lib_mem_dmabuf/dmabuf.hpp"
 #include "sensor_msgs/image_encodings.hpp"
@@ -44,4 +44,4 @@ bool read_image_from_dmabuf(std::shared_ptr<lib_mem_dmabuf::DmaBuffer> dmabuf,
 
 }  // namespace qrb_ros::transport::image_utils
 
-#endif  // QRB_ROS_TRANSPORT__IMAGE_UTILS_HPP_
+#endif  // QRB_ROS_TRANSPORT_IMAGE_TYPE__IMAGE_UTILS_HPP_

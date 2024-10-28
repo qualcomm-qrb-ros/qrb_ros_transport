@@ -1,7 +1,7 @@
 // Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include "qrb_ros_transport/type/image.hpp"
+#include "qrb_ros_transport_image_type/image.hpp"
 
 void rclcpp::TypeAdapter<qrb_ros::transport::type::Image,
     sensor_msgs::msg::Image>::convert_to_ros_message(const custom_type & source,

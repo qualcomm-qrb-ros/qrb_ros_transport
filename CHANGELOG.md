@@ -1,5 +1,10 @@
 # Changelog for package qrb_ros_transport
 
+## 1.2.0 (2024-10-26)
+
+- Separate Image and IMU types to standalone packages
+- Contributors: Peng Wang
+
 ## 1.1.0 (2024-07-12)
 
 - Add IMU transport support
