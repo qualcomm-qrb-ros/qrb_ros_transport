@@ -1,7 +1,7 @@
 // Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include "qrb_ros_transport/type/imu.hpp"
+#include "qrb_ros_transport_imu_type/imu.hpp"
 
 void rclcpp::TypeAdapter<qrb_ros::transport::type::Imu,
     sensor_msgs::msg::Imu>::convert_to_ros_message(const custom_type & source,

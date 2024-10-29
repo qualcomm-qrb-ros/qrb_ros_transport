@@ -1,7 +1,7 @@
 // Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include "qrb_ros_transport/image_utils.hpp"
+#include "qrb_ros_transport_image_type/image_utils.hpp"
 
 #include "gtest/gtest.h"
 

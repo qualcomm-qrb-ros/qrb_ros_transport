@@ -1,8 +1,8 @@
 // Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#ifndef QRB_ROS_TRANSPORT__TYPE__IMU_HPP_
-#define QRB_ROS_TRANSPORT__TYPE__IMU_HPP_
+#ifndef QRB_ROS_TRANSPORT_IMU_TYPE__IMU_HPP_
+#define QRB_ROS_TRANSPORT_IMU_TYPE__IMU_HPP_
 
 #include "qrb_sensor_client/sensor_client.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -34,4 +34,4 @@ struct rclcpp::TypeAdapter<qrb_ros::transport::type::Imu, sensor_msgs::msg::Imu>
 
 RCLCPP_USING_CUSTOM_TYPE_AS_ROS_MESSAGE_TYPE(qrb_ros::transport::type::Imu, sensor_msgs::msg::Imu);
 
-#endif  // QRB_ROS_TRANSPORT__TYPE__IMU_HPP_
+#endif  // QRB_ROS_TRANSPORT_IMU_TYPE__IMU_HPP_
