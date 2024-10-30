@@ -17,8 +17,7 @@
 namespace qrb_ros::transport::type
 {
 
-struct Image
-{
+struct Image {
   std_msgs::msg::Header header;
   int width{ 0 };
   int height{ 0 };
