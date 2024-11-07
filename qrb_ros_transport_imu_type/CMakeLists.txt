@@ -28,4 +28,4 @@ if(BUILD_TESTING)
   target_compile_definitions(${PROJECT_NAME}_imu_test_sub PRIVATE "-DTEST_SUBSCRIBER")
 endif()
 
-ament_package()
+ament_auto_package()
