@@ -33,4 +33,4 @@ if(BUILD_TESTING)
   )
 endif()
 
-ament_package()
+ament_auto_package()
