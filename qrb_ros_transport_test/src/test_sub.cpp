@@ -20,6 +20,7 @@ private:
 
   rclcpp::SubscriptionBase::SharedPtr sub_{ nullptr };
   std::string topic_name_;
+  rclcpp::QoS qos_{ 30 };
 
   rclcpp::Time last_calculate_time_{ 0, 0, RCL_STEADY_TIME };
   int msg_count_{ 0 };
@@ -31,9 +32,19 @@ TestSubComponent::TestSubComponent(const rclcpp::NodeOptions & options)
 {
   auto message_type = this->declare_parameter("test_type", "qrb_ros::transport::type::Image");
   topic_name_ = this->declare_parameter("topic_name", "image");
+  auto qos_type_ = this->declare_parameter("qos", "reliable");
 
-  RCLCPP_INFO(get_logger(), "=== Subscribe type: %s, topic_name: %s", message_type.c_str(),
-      topic_name_.c_str());
+  RCLCPP_INFO(get_logger(), "=== Subscribe type: %s, topic_name: %s, qos: %s", message_type.c_str(),
+      topic_name_.c_str(), qos_type_.c_str());
+
+  if (qos_type_ == "reliable") {
+    qos_.reliable();
+  } else if (qos_type_ == "best_effort") {
+    qos_.best_effort();
+  } else {
+    RCLCPP_ERROR(get_logger(), "qos parameter invalid: %s", qos_type_.c_str());
+    throw std::runtime_error("qos parameter invalid");
+  }
 
   if (message_type == "qrb_ros::transport::type::Image") {
     create_test_subscriber<type::Image>();
@@ -51,7 +62,7 @@ TestSubComponent::TestSubComponent(const rclcpp::NodeOptions & options)
 template <typename T>
 void TestSubComponent::create_test_subscriber()
 {
-  sub_ = this->create_subscription<T>(topic_name_, 30,
+  sub_ = this->create_subscription<T>(topic_name_, qos_,
       [this](const std::shared_ptr<T> msg) { print_performance_stats(msg->header); });
 }
 

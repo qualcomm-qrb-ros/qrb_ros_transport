@@ -55,27 +55,40 @@ TestPubComponent::TestPubComponent(const rclcpp::NodeOptions & options)
   auto message_type = this->declare_parameter("test_type", "qrb_ros::transport::type::Image");
   auto topic_name = this->declare_parameter("topic_name", "image");
   auto fps = this->declare_parameter("fps", 30);
+  auto qos_type = this->declare_parameter("qos", "reliable");
 
   RCLCPP_INFO(get_logger(),
       "=== Publish type: %s, width: %ld, height: %ld, encoding: %s, input: %s, topic_name: %s, "
-      "fps: %ld",
+      "fps: %ld, qos: %s",
       message_type.c_str(), width, height, encoding.c_str(), input_file.c_str(), topic_name.c_str(),
-      fps);
+      fps, qos_type.c_str());
+
+  rclcpp::QoS qos{ 30 };
+  if (qos_type == "reliable") {
+    qos.reliable();
+  } else if (qos_type == "best_effort") {
+    qos.best_effort();
+  } else {
+    RCLCPP_ERROR(get_logger(), "qos parameter invalid: %s", qos_type.c_str());
+    throw std::runtime_error("qos parameter invalid");
+  }
 
   if (message_type == "qrb_ros::transport::type::Image") {
-    image_pub_ = this->create_publisher<type::Image>(topic_name, 30);
+    image_pub_ = this->create_publisher<type::Image>(topic_name, qos);
     pub_thread_ = std::make_shared<std::thread>(
         &TestPubComponent::publish_image, this, width, height, encoding, fps, input_file);
   } else if (message_type == "sensor_msgs::msg::Image") {
-    ros_image_pub_ = this->create_publisher<sensor_msgs::msg::Image>(topic_name, 30);
+    ros_image_pub_ = this->create_publisher<sensor_msgs::msg::Image>(topic_name, qos);
     pub_thread_ = std::make_shared<std::thread>(
         &TestPubComponent::publish_ros_image, this, width, height, encoding, fps, input_file);
   } else if (message_type == "qrb_ros::transport::type::Imu") {
-    imu_pub_ = this->create_publisher<type::Imu>(topic_name, 30);
+    imu_pub_ = this->create_publisher<type::Imu>(topic_name, qos);
     pub_thread_ = std::make_shared<std::thread>(&TestPubComponent::publish_imu, this, fps);
   } else if (message_type == "sensor_msgs::msg::Imu") {
-    ros_imu_pub_ = this->create_publisher<sensor_msgs::msg::Imu>(topic_name, 30);
+    ros_imu_pub_ = this->create_publisher<sensor_msgs::msg::Imu>(topic_name, qos);
     pub_thread_ = std::make_shared<std::thread>(&TestPubComponent::publish_ros_imu, this, fps);
+  } else {
+    RCLCPP_ERROR_STREAM(get_logger(), "Unknown type: " << message_type);
   }
 }
 
