@@ -3,6 +3,7 @@
 
 #include "qrb_ros_transport_image_type/image.hpp"
 #include "qrb_ros_transport_imu_type/imu.hpp"
+#include "qrb_ros_transport_point_cloud2_type/point_cloud2.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 namespace qrb_ros::transport
@@ -54,6 +55,10 @@ TestSubComponent::TestSubComponent(const rclcpp::NodeOptions & options)
     create_test_subscriber<sensor_msgs::msg::Image>();
   } else if (message_type == "sensor_msgs::msg::Imu") {
     create_test_subscriber<sensor_msgs::msg::Imu>();
+  } else if (message_type == "qrb_ros::transport::type::PointCloud2") {
+    create_test_subscriber<type::PointCloud2>();
+  } else if (message_type == "sensor_msgs::msg::PointCloud2") {
+    create_test_subscriber<sensor_msgs::msg::PointCloud2>();
   } else {
     RCLCPP_ERROR_STREAM(get_logger(), "Unknown type: " << message_type);
   }

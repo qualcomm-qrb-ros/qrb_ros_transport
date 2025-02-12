@@ -3,8 +3,13 @@
 
 #include <fstream>
 
+#include "pcl/filters/filter.h"
+#include "pcl/io/ply_io.h"
+#include "pcl/point_types.h"
+#include "pcl_conversions/pcl_conversions.h"
 #include "qrb_ros_transport_image_type/image.hpp"
 #include "qrb_ros_transport_imu_type/imu.hpp"
+#include "qrb_ros_transport_point_cloud2_type/point_cloud2.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 namespace qrb_ros::transport
@@ -25,6 +30,8 @@ private:
   void dump_msg(const std::shared_ptr<sensor_msgs::msg::Image> msg);
   void dump_msg(const std::shared_ptr<qrb_ros::transport::type::Imu> msg);
   void dump_msg(const std::shared_ptr<sensor_msgs::msg::Imu> msg);
+  void dump_msg(const std::shared_ptr<qrb_ros::transport::type::PointCloud2> msg);
+  void dump_msg(const std::shared_ptr<sensor_msgs::msg::PointCloud2> msg);
 
   void save_data_to_file(const std::string & path, const char * data, std::size_t size);
   void read_dmabuf_to_file(const std::string & path,
@@ -52,6 +59,10 @@ TestDumpComponent::TestDumpComponent(const rclcpp::NodeOptions & options)
     create_dump_subscriber<sensor_msgs::msg::Image>();
   } else if (message_type == "sensor_msgs::msg::Imu") {
     create_dump_subscriber<sensor_msgs::msg::Imu>();
+  } else if (message_type == "qrb_ros::transport::type::PointCloud2") {
+    create_dump_subscriber<type::PointCloud2>();
+  } else if (message_type == "sensor_msgs::msg::PointCloud2") {
+    create_dump_subscriber<sensor_msgs::msg::PointCloud2>();
   } else {
     RCLCPP_ERROR_STREAM(get_logger(), "Unknown type: " << message_type);
   }
@@ -161,6 +172,35 @@ void TestDumpComponent::dump_msg(const std::shared_ptr<sensor_msgs::msg::Imu> ms
 
   file.write(line.str().c_str(), line.str().size());
   file.close();
+
+  RCLCPP_INFO(get_logger(), "dump success");
+  sub_.reset();
+}
+
+void TestDumpComponent::dump_msg(const std::shared_ptr<type::PointCloud2> msg)
+{
+  RCLCPP_INFO(get_logger(), "dump qrb_ros::transport::type::PointCloud2 message");
+  auto ros_msg = std::make_shared<sensor_msgs::msg::PointCloud2>();
+  rclcpp::TypeAdapter<type::PointCloud2, sensor_msgs::msg::PointCloud2>::convert_to_ros_message(
+      *msg, *ros_msg);
+  dump_msg(ros_msg);
+}
+
+void TestDumpComponent::dump_msg(const std::shared_ptr<sensor_msgs::msg::PointCloud2> msg)
+{
+  RCLCPP_INFO(get_logger(), "dump sensor_msgs::msg::PointCloud2 message");
+
+  pcl::PointCloud<pcl::PointXYZ> p;
+  pcl::fromROSMsg(*msg, p);
+
+  std::vector<int> indices;
+  pcl::removeNaNFromPointCloud(p, p, indices);
+
+  if (pcl::io::savePLYFile(dump_path_, p) == -1) {
+    RCLCPP_ERROR_STREAM(this->get_logger(), "save to file: " << dump_path_ << "failed");
+    sub_.reset();
+    return;
+  }
 
   RCLCPP_INFO(get_logger(), "dump success");
   sub_.reset();

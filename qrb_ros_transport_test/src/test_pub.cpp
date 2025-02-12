@@ -3,8 +3,12 @@
 
 #include <fstream>
 
+#include "pcl/io/ply_io.h"
+#include "pcl/point_types.h"
+#include "pcl_conversions/pcl_conversions.h"
 #include "qrb_ros_transport_image_type/image.hpp"
 #include "qrb_ros_transport_imu_type/imu.hpp"
+#include "qrb_ros_transport_point_cloud2_type/point_cloud2.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 using namespace std::placeholders;
@@ -37,10 +41,15 @@ private:
   void publish_imu(int fps);
   void publish_ros_imu(int fps);
 
+  void publish_point_cloud2(int fps, const std::string & data_file);
+  void publish_ros_point_cloud2(int fps, const std::string & data_file);
+
   rclcpp::Publisher<type::Image>::SharedPtr image_pub_{ nullptr };
   rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr ros_image_pub_{ nullptr };
   rclcpp::Publisher<type::Imu>::SharedPtr imu_pub_{ nullptr };
   rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr ros_imu_pub_{ nullptr };
+  rclcpp::Publisher<type::PointCloud2>::SharedPtr point_cloud2_pub_{ nullptr };
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr ros_point_cloud2_pub_{ nullptr };
 
   std::shared_ptr<std::thread> pub_thread_{ nullptr };
 };
@@ -87,6 +96,14 @@ TestPubComponent::TestPubComponent(const rclcpp::NodeOptions & options)
   } else if (message_type == "sensor_msgs::msg::Imu") {
     ros_imu_pub_ = this->create_publisher<sensor_msgs::msg::Imu>(topic_name, qos);
     pub_thread_ = std::make_shared<std::thread>(&TestPubComponent::publish_ros_imu, this, fps);
+  } else if (message_type == "qrb_ros::transport::type::PointCloud2") {
+    point_cloud2_pub_ = this->create_publisher<type::PointCloud2>(topic_name, qos);
+    pub_thread_ = std::make_shared<std::thread>(
+        &TestPubComponent::publish_point_cloud2, this, fps, input_file);
+  } else if (message_type == "sensor_msgs::msg::PointCloud2") {
+    ros_point_cloud2_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(topic_name, qos);
+    pub_thread_ = std::make_shared<std::thread>(
+        &TestPubComponent::publish_ros_point_cloud2, this, fps, input_file);
   } else {
     RCLCPP_ERROR_STREAM(get_logger(), "Unknown type: " << message_type);
   }
@@ -259,6 +276,79 @@ void TestPubComponent::publish_ros_imu(int fps)
 
     msg->header.stamp = this->now();
     ros_imu_pub_->publish(std::move(msg));
+
+    i++;
+    if (i == fps) {
+      i = 0;
+    }
+    rate.sleep();
+  }
+}
+
+void TestPubComponent::publish_point_cloud2(int fps, const std::string & data_file)
+{
+  auto p = std::make_unique<pcl::PointCloud<pcl::PointXYZ>>();
+  if (pcl::io::loadPLYFile(data_file, *p) == -1) {
+    RCLCPP_ERROR_STREAM(get_logger(), "read ply file failed: " << data_file);
+    return;
+  }
+
+  sensor_msgs::msg::PointCloud2 ros_msg;
+  pcl::toROSMsg(*p, ros_msg);
+  auto data_size = ros_msg.data.size();
+
+  rclcpp::Rate rate(fps);
+  int i = 1;
+  while (rclcpp::ok()) {
+    auto msg = std::make_unique<type::PointCloud2>();
+    msg->width = ros_msg.width;
+    msg->height = ros_msg.height;
+    msg->point_step = ros_msg.point_step;
+    msg->row_step = ros_msg.row_step;
+    msg->fields = ros_msg.fields;
+    msg->is_dense = ros_msg.is_dense;
+    msg->is_bigendian = ros_msg.is_bigendian;
+
+    auto dmabuf = lib_mem_dmabuf::DmaBuffer::alloc(data_size, "/dev/dma_heap/system");
+    if (dmabuf == nullptr) {
+      RCLCPP_ERROR_STREAM(get_logger(), "dmabuf alloc failed, size: " << data_size);
+      return;
+    }
+    if (dmabuf->map()) {
+      dmabuf->set_data(ros_msg.data.data(), data_size);
+      dmabuf->unmap();
+    } else {
+      RCLCPP_ERROR(get_logger(), "dmabuf set data failed");
+      return;
+    }
+    msg->data_fd = dmabuf;
+
+    msg->header.stamp = this->now();
+    point_cloud2_pub_->publish(std::move(msg));
+
+    i++;
+    if (i == fps) {
+      i = 0;
+    }
+    rate.sleep();
+  }
+}
+
+void TestPubComponent::publish_ros_point_cloud2(int fps, const std::string & data_file)
+{
+  auto p = std::make_unique<pcl::PointCloud<pcl::PointXYZ>>();
+  if (pcl::io::loadPLYFile(data_file, *p) == -1) {
+    RCLCPP_ERROR_STREAM(get_logger(), "read ply file failed: " << data_file);
+    return;
+  }
+
+  rclcpp::Rate rate(fps);
+  int i = 1;
+  while (rclcpp::ok()) {
+    auto msg = std::make_unique<sensor_msgs::msg::PointCloud2>();
+    pcl::toROSMsg(*p, *msg);
+    msg->header.stamp = this->now();
+    ros_point_cloud2_pub_->publish(std::move(msg));
 
     i++;
     if (i == fps) {
