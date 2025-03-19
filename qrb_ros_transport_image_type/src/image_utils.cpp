@@ -51,7 +51,12 @@ int get_image_align_size(int width, int height, const std::string & encoding)
     throw std::runtime_error("unsupported encoding " + encoding);
   }
   auto bbp = bytes_per_pixel(encoding);
-  auto size = align_width(width) * align_height(height) * bbp;
+  int size = 0;
+  if (encoding == sensor_msgs::image_encodings::RGB8) {
+    size = align(width, 256) * align_height(height) * bbp;
+  } else {
+    size = align_width(width) * align_height(height) * bbp;
+  }
   return align_total_size(size);
 }
 
@@ -100,30 +105,27 @@ bool save_image_to_dmabuf(std::shared_ptr<lib_mem_dmabuf::DmaBuffer> dmabuf,
     return false;
   }
 
+  if (!need_align) {
+    memcpy(dmabuf->addr(), data, src_step * height * bytes_per_pixel(encoding));
+    return true;
+  }
+
   if (encoding == sensor_msgs::image_encodings::RGB8) {
     int line_size = std::ceil(align_width(width) * bytes_per_pixel(encoding));
-    if (!need_align) {
-      memcpy(dmabuf->addr(), data, height * line_size);
-    } else {
-      for (int i = 0; i < height; i++) {
-        memcpy((char *)dmabuf->addr() + i * line_size, (char *)data + i * src_step,
-            width * bytes_per_pixel(encoding));
-      }
+    for (int i = 0; i < height; i++) {
+      memcpy((char *)dmabuf->addr() + i * line_size, (char *)data + i * src_step,
+          width * bytes_per_pixel(encoding));
     }
   } else if (encoding == "nv12") {
-    if (!need_align) {
-      memcpy(dmabuf->addr(), data, get_image_align_size(width, height, "nv12"));
-    } else {
-      // copy Y channel data
-      for (int i = 0; i < height; i++) {
-        memcpy((char *)dmabuf->addr() + i * align_width(width), (char *)data + i * src_step, width);
-      }
-      auto offset = align_width(width) * align_height(height);
-      // copy UV channel data
-      for (int i = 0; i < (height + 1) / 2; i++) {
-        memcpy((char *)dmabuf->addr() + offset + i * align_width(width),
-            (char *)data + (height + i) * src_step, width);
-      }
+    // copy Y channel data
+    for (int i = 0; i < height; i++) {
+      memcpy((char *)dmabuf->addr() + i * align_width(width), (char *)data + i * src_step, width);
+    }
+    auto offset = align_width(width) * align_height(height);
+    // copy UV channel data
+    for (int i = 0; i < (height + 1) / 2; i++) {
+      memcpy((char *)dmabuf->addr() + offset + i * align_width(width),
+          (char *)data + (height + i) * src_step, width);
     }
   } else {
     RCLCPP_ERROR(rclcpp::get_logger("qrb_ros_transport"), "encoding not support");
@@ -156,29 +158,26 @@ bool read_image_from_dmabuf(std::shared_ptr<lib_mem_dmabuf::DmaBuffer> dmabuf,
     return false;
   }
 
+  if (!need_unalign) {
+    memcpy(dst, dmabuf->addr(), dst_step * height * bytes_per_pixel(encoding));
+    return true;
+  }
+
   if (encoding == sensor_msgs::image_encodings::RGB8) {
     int line_size = std::ceil(align_width(width) * bytes_per_pixel(encoding));
-    if (!need_unalign) {
-      memcpy(dst, dmabuf->addr(), height * line_size);
-    } else {
-      for (int i = 0; i < height; i++) {
-        memcpy(dst + i * dst_step, (char *)dmabuf->addr() + i * line_size, dst_step);
-      }
+    for (int i = 0; i < height; i++) {
+      memcpy(dst + i * dst_step, (char *)dmabuf->addr() + i * line_size, dst_step);
     }
   } else if (encoding == "nv12") {
-    if (!need_unalign) {
-      memcpy(dst, dmabuf->addr(), get_image_align_size(width, height, "nv12"));
-    } else {
-      // copy Y channel
-      for (int i = 0; i < height; i++) {
-        memcpy(dst + i * dst_step, (char *)dmabuf->addr() + i * align_width(width), width);
-      }
-      // copy UV channel
-      auto offset = align_width(width) * align_height(height);
-      for (int i = 0; i < (height + 1) / 2; i++) {
-        memcpy(dst + (height + i) * dst_step,
-            (char *)dmabuf->addr() + offset + i * align_width(width), width);
-      }
+    // copy Y channel
+    for (int i = 0; i < height; i++) {
+      memcpy(dst + i * dst_step, (char *)dmabuf->addr() + i * align_width(width), width);
+    }
+    // copy UV channel
+    auto offset = align_width(width) * align_height(height);
+    for (int i = 0; i < (height + 1) / 2; i++) {
+      memcpy(dst + (height + i) * dst_step,
+          (char *)dmabuf->addr() + offset + i * align_width(width), width);
     }
   } else {
     RCLCPP_ERROR(rclcpp::get_logger("qrb_ros_transport"), "encoding not support");

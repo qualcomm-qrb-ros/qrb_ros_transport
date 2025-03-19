@@ -35,7 +35,8 @@ TEST(image_utils, get_image_align_size)
   int width = 600;
   int height = 400;
 
-  int rgb8_size = 640 * 416 * 3;
+  // rgb8 need extra space for width -> 256
+  int rgb8_size = (640 + 128) * 416 * 3;
   ASSERT_EQ(rgb8_size, qrb_ros::transport::image_utils::get_image_align_size(
                            width, height, sensor_msgs::image_encodings::RGB8));
 
