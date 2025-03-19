@@ -12,13 +12,9 @@ namespace qrb_ros::transport::image_utils
 
 int align(int x, int align_size);
 
-[[deprecated("Use align_width(width, encoding) instead.")]] int align_width(int width);
+int align_width(int width);
 
-[[deprecated("Use align_height(height, encoding) instead.")]] int align_height(int height);
-
-int align_width(int width, const std::string & encoding);
-
-int align_height(int height, const std::string & encoding);
+int align_height(int height);
 
 int align_total_size(int size);
 
