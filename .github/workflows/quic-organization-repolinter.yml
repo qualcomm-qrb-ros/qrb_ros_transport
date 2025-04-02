@@ -1,18 +1,13 @@
 name: QuIC Organization Repolinter
 
-on:
-  push:
-    branches: [ $default-branch ]
-  pull_request:
-    branches: [ $default-branch ]
-  workflow_dispatch:
+on: [push, pull_request]
 
 jobs:
   repolinter:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Verify repolinter config file is present
         id: check_files
         uses: andstor/file-existence-action@v1
@@ -28,3 +23,4 @@ jobs:
         uses: todogroup/repolinter-action@v1
         with:
           config_url: "https://raw.githubusercontent.com/quic/.github/main/repolint.json"
+
