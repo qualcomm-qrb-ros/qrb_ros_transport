@@ -2,100 +2,112 @@
 
 ## Overview
 
-[QRB ROS Transport](https://github.com/quic-qrb-ros/qrb_ros_transport) is designed for hardware-acceleration friendly transporting of messages on Qualcomm robotics platforms. It uses type adaption to make message data zero-copy between different ROS nodes, and different hardwares. It includes adapted types for Qualcomm robotics platforms.
+[QRB ROS Transport](https://github.com/quic-qrb-ros/qrb_ros_transport) is designed for zero-copy transporting ROS messages on Qualcomm robotics platforms.
 
-[Type Adaptation Feature (REP 2007)](https://ros.org/reps/rep-2007.html) has enabled on ROS 2 Humble. This interface will allow us to define methods for serializing directly to the user requested type, and/or using that type in intra-process communication without ever converting it.
-
-qrb_ros_transport is based on [lib_mem_dmabuf](https://github.com/quic-qrb-ros/lib_mem_dmabuf), it is open sourced and apply to all platforms based on Linux.
+ It is implemented based on [REP 2007](https://ros.org/reps/rep-2007.html), which provides interfaces to define methods for serializing custom types and/or using those types in intra-process communication without conversion.
 
 ## Getting Started
 
-### Prerequisites
+### Build
 
-- Linux kernel version 5.12 and later, for kernel dma-buf support.
-- ROS 2 Humble and later, for type adaption support.
+For the Qualcomm QCLinux platform, we provide two ways to build this package.
 
-### Cross Compile with QCLINUX SDK
+<details>
+<summary>On-Device Compilation with Docker</summary>
 
-Setup QCLINUX SDK environments:
-- Reference [QRB ROS Documents: Getting Started](https://quic-qrb-ros.github.io/getting_started/environment_setup.html)
+1. Set up the QCLinux Docker environment following the [QRB ROS Docker Setup](https://github.com/quic-qrb-ros/qrb_ros_docker?tab=readme-ov-file#quickstart).
 
-Create workspace in QCLINUX SDK environment and clone source code
+2. Clone and build the source code:
 
-```bash
-mkdir -p <qirp_decompressed_workspace>/qirp-sdk/ros_ws
-cd <qirp_decompressed_workspace>/qirp-sdk/ros_ws
+    ```bash
+    cd ~/qrb_ros_ws/src/qrb_ros_docker/scripts && \
+    bash docker_run.sh
 
-git clone https://github.com/quic-qrb-ros/lib_mem_dmabuf.git
-git clone https://github.com/quic-qrb-ros/qrb_ros_imu.git
-git clone https://github.com/quic-qrb-ros/qrb_ros_transport.git
-```
+    git clone https://github.com/quic-qrb-ros/lib_mem_dmabuf.git
+    git clone https://github.com/quic-qrb-ros/qrb_ros_imu.git
+    git clone https://github.com/quic-qrb-ros/qrb_ros_transport.git
 
-Build source code with QCLINUX SDK
+    colcon build --packages-skip qrb_ros_transport_test
+    ```
 
-```bash
-export AMENT_PREFIX_PATH="${OECORE_TARGET_SYSROOT}/usr;${OECORE_NATIVE_SYSROOT}/usr"
-export PYTHONPATH=${PYTHONPATH}:${OECORE_TARGET_SYSROOT}/usr/lib/python3.10/site-packages
+</details>
 
-colcon build --merge-install --cmake-args \
-  -DPython3_ROOT_DIR=${OECORE_TARGET_SYSROOT}/usr \
-  -DPython3_NumPy_INCLUDE_DIR=${OECORE_TARGET_SYSROOT}/usr/lib/python3.10/site-packages/numpy/core/include \
-  -DPYTHON_SOABI=cpython-310-aarch64-linux-gnu -DCMAKE_STAGING_PREFIX=$(pwd)/install \
-  -DCMAKE_PREFIX_PATH=$(pwd)/install/share \
-  -DBUILD_TESTING=OFF
-```
+<details><summary>Cross Compilation with QIRP SDK</summary>
 
-### Use `qrb_ros_transport` in your package
+1. Set up the QIRP SDK environment: Refer to [QRB ROS Documents: Getting Started](https://quic-qrb-ros.github.io/main/getting_started/environment_setup.html).
 
-Add dependencies in your package.xml
+2. Create a workspace and clone the source code:
+
+    ```bash
+    mkdir -p <qirp_decompressed_workspace>/qirp-sdk/ros_ws
+    cd <qirp_decompressed_workspace>/qirp-sdk/ros_ws
+
+    git clone https://github.com/quic-qrb-ros/qrb_ros_transport.git
+    ```
+
+3. Build the source code with QIRP SDK:
+
+    ```bash
+    colcon build --merge-install --packages-skip qrb_ros_transport_test --cmake-args \
+      -DPYTHON_EXECUTABLE=${OECORE_NATIVE_SYSROOT}/usr/bin/python3 \
+      -DPython3_NumPy_INCLUDE_DIR=${OECORE_NATIVE_SYSROOT}/usr/lib/python3.12/site-packages/numpy/core/include \
+      -DPYTHON_SOABI=cpython-312-aarch64-linux-gnu \
+      -DCMAKE_MAKE_PROGRAM=/usr/bin/make \
+      -DBUILD_TESTING=OFF
+    ```
+
+</details>
+
+### Usage
+
+This section shows how to use `qrb_ros_transport` in your projects, here take `qrb_ros::transport::type::Image` as an example.
+
+Add dependencies in your `package.xml`:
 
 ```xml
 <depend>qrb_ros_transport_image_type</depend>
 ```
-Use ament_cmake_auto to find dependencies in your CMakeLists.txt
+
+Use `ament_cmake_auto` to find dependencies in your `CMakeLists.txt`:
 
 ```cmake
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 ```
 
-Using adapted types in your ROS node
+<details open><summary>Using adapted types in your ROS node</summary>
 
 ```c++
 #include "qrb_ros_transport_image_type/image.hpp"
 
-// create message
+// Create message
 auto msg = std::make_unique<qrb_ros::transport::type::Image>();
 msg->header = std_msgs::msg::Header();
 msg->width = width;
 msg->height = height;
 msg->encoding = "nv12";
 
-// alloc dmabuf for message
+// Allocate dmabuf for message
 auto dmabuf = lib_mem_dmabuf::DmaBuffer::alloc(size, "/dev/dma_heap/system");
 // ... set data to dmabuf
 msg->dmabuf = dmabuf;
 
-// publish message
+// Publish message
 pub->publish(std::move(msg));
 ```
+</details>
+
+For more details, check out the documentation at [quic-qrb-ros.github.io](https://quic-qrb-ros.github.io/).
 
 ## Supported Types
 
-The following table lists current supported types:
+The following table lists the currently supported types:
 
-| QRB ROS Transport Type          | ROS Interface           |
+| QRB ROS Transport Type          | ROS Interfaces          |
 | ------------------------------- | ----------------------- |
 | [qrb_ros::transport::type::Image](./qrb_ros_transport_image_type/include/qrb_ros_transport_image_type/image.hpp) | [sensor_msgs::msg::Image](https://github.com/ros2/common_interfaces/blob/rolling/sensor_msgs/msg/Image.msg) |
 | [qrb_ros::transport::type::Imu](./qrb_ros_transport_imu_type/include/qrb_ros_transport_imu_type/imu.hpp) | [sensor_msgs::msg::Imu](https://github.com/ros2/common_interfaces/blob/rolling/sensor_msgs/msg/Imu.msg) |
-
-## Supported Platforms
-
-This package is designed and tested to be compatible with ROS 2 Humble running on Qualcomm RB3 gen2.
-
-| Hardware                                                     | Software          |
-| ------------------------------------------------------------ | ----------------- |
-| [Qualcomm RB3 gen2](https://www.qualcomm.com/developer/hardware/rb3-gen-2-development-kit) | LE.QCROBOTICS.1.0 |
+| [qrb_ros::transport::type::PointCloud2](./qrb_ros_transport_point_cloud2_type/include/qrb_ros_transport_point_cloud2_type/point_cloud2.hpp) | [sensor_msgs::msg::PointCloud2](https://github.com/ros2/common_interfaces/blob/rolling/sensor_msgs/msg/PointCloud2.msg) |
 
 ## Contributing
 
@@ -106,10 +118,10 @@ We would love to have you as a part of the QRB ROS community. Whether you are he
 
 ## Authors
 
-* **Peng Wang** - *Maintainer* - [penww](https://github.com/penww)
+* **Peng Wang** - *Maintainer* - [@penww](https://github.com/penww)
 
 See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
 
 ## License
 
-Project is licensed under the [BSD-3-clause License](https://spdx.org/licenses/BSD-3-Clause.html). See [LICENSE](./LICENSE) for the full license text.
+Project is licensed under the [BSD-3-Clause License](https://spdx.org/licenses/BSD-3-Clause.html). See [LICENSE](./LICENSE) for the full license text.
