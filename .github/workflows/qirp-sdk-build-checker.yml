@@ -1,0 +1,112 @@
+name: QIRP SDK Build Checker
+
+on: [push, pull_request]
+
+env:
+  PERSIST_DIR: /srv/gh-runners/quic-qrb-ros
+  DL_DIR: /srv/gh-runners/quic-qrb-ros/downloads
+  WORKSPACE: ${{ github.workspace }}/ros_ws
+  SDK_DIR: ${{ github.workspace }}/sdk
+  QCOM_SELECTED_BSP: custom
+
+jobs:
+  build:
+    runs-on: [self-hosted, x86]
+    timeout-minutes: 720
+    strategy:
+      fail-fast: false
+      matrix:
+        machine:
+          - qcs6490-rb3gen2-vision-kit
+          - qcs9075-rb8-core-kit
+          - qcs8300-ride-sx
+        distro:
+          - qcom-robotics-ros2-jazzy
+    steps:
+      - name: Set enviroment variables
+        run: |
+          echo "MACHINE=${{ matrix.machine }}" >> $GITHUB_ENV
+          echo "DISTRO=${{ matrix.distro }}" >> $GITHUB_ENV
+
+      - name: Set up SDK
+        run: |
+          set -x
+          export TARGET_DIR="${PERSIST_DIR}/${MACHINE}-${DISTRO}-${QCOM_SELECTED_BSP}"
+          if [ -e ${PERSIST_DIR} ] && [ -r ${PERSIST_DIR} ] && [ -x ${PERSIST_DIR} ];then
+            image_dir=$(find ${TARGET_DIR} -type d -name 'qcom-[0-9]*.[0-9]*.[0-9]*-QLI.[0-9]*.[0-9]*-Ver.[0-9]*.[0-9]*_robotics-product-sdk-[0-9]*.[0-9]' | sort -V | tail -n 1)
+            sdk_file=$(find ${image_dir} -type f -name "*.sh")
+            echo "SDK path: ${image_dir}"
+            echo "SDK file: ${sdk_file}"
+
+            echo "Setting up SDK..."
+            umask 022
+            ${sdk_file} <<EOF
+            ${SDK_DIR}
+            Y
+          EOF
+          else
+            echo "Shared directory is unavailable!!!"
+            exit 1
+          fi
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: ${{ github.workspace }}/ros_ws/${{ github.event.repository.name }}
+
+      - name: Download dependencies
+        run: |
+          cd ${WORKSPACE}
+          # no QRB ROS dependencies
+
+      - name: build
+        run: |
+          cd ${SDK_DIR}
+          umask 022
+          . environment-setup-armv8-2a-qcom-linux
+          cd ${WORKSPACE}
+
+          export AMENT_PREFIX_PATH="${OECORE_NATIVE_SYSROOT}/usr:${OECORE_TARGET_SYSROOT}/usr"
+          export PYTHONPATH=${PYTHONPATH}:${OECORE_TARGET_SYSROOT}/usr/lib/python3.12/site-packages
+
+          colcon build --merge-install --packages-skip qrb_ros_transport_test --cmake-args \
+            -DPYTHON_EXECUTABLE=${OECORE_NATIVE_SYSROOT}/usr/bin/python3 \
+            -DPython3_NumPy_INCLUDE_DIR=${OECORE_NATIVE_SYSROOT}/usr/lib/python3.12/site-packages/numpy/core/include \
+            -DPYTHON_SOABI=cpython-312-aarch64-linux-gnu \
+            -DCMAKE_MAKE_PROGRAM=/usr/bin/make \
+            -DBUILD_TESTING=OFF
+
+      - name: Publish artifacts
+        continue-on-error: true
+        run: |
+          build_dir=${PERSIST_DIR}/builds/${GITHUB_RUN_ID}
+          mkdir -p $build_dir
+
+          tar -cvf ${build_dir}/artifacts.tar ${WORKSPACE}/install ${WORKSPACE}/build ${WORKSPACE}/log
+          ##########################debug###############################
+          ls -al  ${build_dir}
+
+          # Instruct our file server to make these files available for download
+          url="https://quic-qrt-ros-fileserver-1029608027416.us-central1.run.app/${GITHUB_RUN_ID}/"
+          retries=8
+          okay=0
+          shopt -s lastpipe  # allows us to capture the value of `okay` in the while loop below
+          for ((i=0; i<retries; i++)); do
+              curl -X POST -H "Accept: text/event-stream" -i --fail-with-body -s -N ${url} | \
+                  while read -r line; do
+                      echo $line
+                      if [[ $line == STATUS=* ]]; then
+                          if [[ $line == "STATUS=OK" ]]; then
+                              okay=1
+                              break
+                          fi
+                      fi
+                  done
+              [ $okay -eq 1 ] && break
+              echo # new line break in case response doesn't have one
+              echo "Error: unable to publish artifacts, sleep and retry"
+              sleep 2
+          done
+          (( retries == i )) && { echo 'Failed to publish artifacts'; exit 1; }
+          echo Artifacts available at: ${url}
