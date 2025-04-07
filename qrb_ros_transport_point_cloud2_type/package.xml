@@ -4,7 +4,7 @@
   <name>qrb_ros_transport_point_cloud2_type</name>
   <version>1.0.0</version>
   <description>Type Adaption for PointCloud2 on Qualcomm robotics platforms</description>
-  <maintainer email="quic_penwang@quicinc.com">Peng Wang</maintainer>
+  <maintainer email="penwang@qti.qualcomm.com">Peng Wang</maintainer>
   <license>BSD-3-Clause</license>
 
   <buildtool_depend>ament_cmake_auto</buildtool_depend>
