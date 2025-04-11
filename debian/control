@@ -1,0 +1,12 @@
+Source: ros-jazzy-qrb-ros-transport-image-type
+Section: misc
+Priority: optional
+Maintainer: Peng Wang <penwang@qti.qualcomm.com>
+Build-Depends: debhelper (>= 9.0.0), ros-jazzy-ament-cmake-auto, ros-jazzy-ament-lint-auto <!nocheck>, ros-jazzy-ament-lint-common <!nocheck>, ros-jazzy-lib-mem-dmabuf, ros-jazzy-rclcpp, ros-jazzy-sensor-msgs, ros-jazzy-std-msgs
+Homepage: 
+Standards-Version: 3.9.2
+
+Package: ros-jazzy-qrb-ros-transport-image-type
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-jazzy-lib-mem-dmabuf, ros-jazzy-rclcpp, ros-jazzy-sensor-msgs, ros-jazzy-std-msgs
+Description: Type Adaption for image on Qualcomm robotics platforms
