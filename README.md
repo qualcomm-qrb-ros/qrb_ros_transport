@@ -2,7 +2,7 @@
 
 ## Overview
 
-[QRB ROS Transport](https://github.com/quic-qrb-ros/qrb_ros_transport) is designed for zero-copy transporting ROS messages on Qualcomm robotics platforms.
+[QRB ROS Transport](https://github.com/qualcomm-qrb-ros/qrb_ros_transport) is designed for zero-copy transporting ROS messages on Qualcomm robotics platforms.
 
  It is implemented based on [REP 2007](https://ros.org/reps/rep-2007.html), which provides interfaces to define methods for serializing custom types and/or using those types in intra-process communication without conversion.
 
@@ -15,7 +15,7 @@ For the Qualcomm QCLinux platform, we provide two ways to build this package.
 <details>
 <summary>On-Device Compilation with Docker</summary>
 
-1. Set up the QCLinux Docker environment following the [QRB ROS Docker Setup](https://github.com/quic-qrb-ros/qrb_ros_docker?tab=readme-ov-file#quickstart).
+1. Set up the QCLinux Docker environment following the [QRB ROS Docker Setup](https://github.com/qualcomm-qrb-ros/qrb_ros_docker?tab=readme-ov-file#quickstart).
 
 2. Clone and build the source code:
 
@@ -23,9 +23,9 @@ For the Qualcomm QCLinux platform, we provide two ways to build this package.
     cd ~/qrb_ros_ws/src/qrb_ros_docker/scripts && \
     bash docker_run.sh
 
-    git clone https://github.com/quic-qrb-ros/lib_mem_dmabuf.git
-    git clone https://github.com/quic-qrb-ros/qrb_ros_imu.git
-    git clone https://github.com/quic-qrb-ros/qrb_ros_transport.git
+    git clone https://github.com/qualcomm-qrb-ros/lib_mem_dmabuf.git
+    git clone https://github.com/qualcomm-qrb-ros/qrb_ros_imu.git
+    git clone https://github.com/qualcomm-qrb-ros/qrb_ros_transport.git
 
     colcon build --packages-skip qrb_ros_transport_test
     ```
@@ -34,7 +34,7 @@ For the Qualcomm QCLinux platform, we provide two ways to build this package.
 
 <details><summary>Cross Compilation with QIRP SDK</summary>
 
-1. Set up the QIRP SDK environment: Refer to [QRB ROS Documents: Getting Started](https://quic-qrb-ros.github.io/main/getting_started/environment_setup.html).
+1. Set up the QIRP SDK environment: Refer to [QRB ROS Documents: Getting Started](https://qualcomm-qrb-ros.github.io/main/getting_started/environment_setup.html).
 
 2. Create a workspace and clone the source code:
 
@@ -42,7 +42,7 @@ For the Qualcomm QCLinux platform, we provide two ways to build this package.
     mkdir -p <qirp_decompressed_workspace>/qirp-sdk/ros_ws
     cd <qirp_decompressed_workspace>/qirp-sdk/ros_ws
 
-    git clone https://github.com/quic-qrb-ros/qrb_ros_transport.git
+    git clone https://github.com/qualcomm-qrb-ros/qrb_ros_transport.git
     ```
 
 3. Build the source code with QIRP SDK:
@@ -97,7 +97,7 @@ pub->publish(std::move(msg));
 ```
 </details>
 
-For more details, check out the documentation at [quic-qrb-ros.github.io](https://quic-qrb-ros.github.io/).
+For more details, check out the documentation at [qualcomm-qrb-ros.github.io](https://qualcomm-qrb-ros.github.io/).
 
 ## Supported Types
 
