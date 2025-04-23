@@ -17,7 +17,7 @@ jobs:
       run: |
         if [ ! -f ./.clang-format ]; then
           echo "No .clang-format found, will use default configuration"
-          curl -o .clang-format https://raw.githubusercontent.com/quic-qrb-ros/.github/main/code-style-profiles/.clang-format
+          curl -o .clang-format https://raw.githubusercontent.com/qualcomm-qrb-ros/.github/main/code-style-profiles/.clang-format
         fi
 
     - name: Check code style
