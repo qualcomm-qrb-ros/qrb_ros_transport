@@ -107,29 +107,28 @@ bool save_image_to_dmabuf(std::shared_ptr<lib_mem_dmabuf::DmaBuffer> dmabuf,
 
   if (!need_align) {
     memcpy(dmabuf->addr(), data, src_step * height * bytes_per_pixel(encoding));
-    return true;
-  }
-
-  if (encoding == sensor_msgs::image_encodings::RGB8) {
-    int line_size = std::ceil(align_width(width) * bytes_per_pixel(encoding));
-    for (int i = 0; i < height; i++) {
-      memcpy((char *)dmabuf->addr() + i * line_size, (char *)data + i * src_step,
-          width * bytes_per_pixel(encoding));
-    }
-  } else if (encoding == "nv12") {
-    // copy Y channel data
-    for (int i = 0; i < height; i++) {
-      memcpy((char *)dmabuf->addr() + i * align_width(width), (char *)data + i * src_step, width);
-    }
-    auto offset = align_width(width) * align_height(height);
-    // copy UV channel data
-    for (int i = 0; i < (height + 1) / 2; i++) {
-      memcpy((char *)dmabuf->addr() + offset + i * align_width(width),
-          (char *)data + (height + i) * src_step, width);
-    }
   } else {
-    RCLCPP_ERROR(rclcpp::get_logger("qrb_ros_transport"), "encoding not support");
-    return false;
+    if (encoding == sensor_msgs::image_encodings::RGB8) {
+      int line_size = std::ceil(align_width(width) * bytes_per_pixel(encoding));
+      for (int i = 0; i < height; i++) {
+        memcpy((char *)dmabuf->addr() + i * line_size, (char *)data + i * src_step,
+            width * bytes_per_pixel(encoding));
+      }
+    } else if (encoding == "nv12") {
+      // copy Y channel data
+      for (int i = 0; i < height; i++) {
+        memcpy((char *)dmabuf->addr() + i * align_width(width), (char *)data + i * src_step, width);
+      }
+      auto offset = align_width(width) * align_height(height);
+      // copy UV channel data
+      for (int i = 0; i < (height + 1) / 2; i++) {
+        memcpy((char *)dmabuf->addr() + offset + i * align_width(width),
+            (char *)data + (height + i) * src_step, width);
+      }
+    } else {
+      RCLCPP_ERROR(rclcpp::get_logger("qrb_ros_transport"), "encoding not support");
+      return false;
+    }
   }
 
   if (!dmabuf->sync_end() || !dmabuf->unmap()) {
@@ -160,28 +159,27 @@ bool read_image_from_dmabuf(std::shared_ptr<lib_mem_dmabuf::DmaBuffer> dmabuf,
 
   if (!need_unalign) {
     memcpy(dst, dmabuf->addr(), dst_step * height * bytes_per_pixel(encoding));
-    return true;
-  }
-
-  if (encoding == sensor_msgs::image_encodings::RGB8) {
-    int line_size = std::ceil(align_width(width) * bytes_per_pixel(encoding));
-    for (int i = 0; i < height; i++) {
-      memcpy(dst + i * dst_step, (char *)dmabuf->addr() + i * line_size, dst_step);
-    }
-  } else if (encoding == "nv12") {
-    // copy Y channel
-    for (int i = 0; i < height; i++) {
-      memcpy(dst + i * dst_step, (char *)dmabuf->addr() + i * align_width(width), width);
-    }
-    // copy UV channel
-    auto offset = align_width(width) * align_height(height);
-    for (int i = 0; i < (height + 1) / 2; i++) {
-      memcpy(dst + (height + i) * dst_step,
-          (char *)dmabuf->addr() + offset + i * align_width(width), width);
-    }
   } else {
-    RCLCPP_ERROR(rclcpp::get_logger("qrb_ros_transport"), "encoding not support");
-    return false;
+    if (encoding == sensor_msgs::image_encodings::RGB8) {
+      int line_size = std::ceil(align_width(width) * bytes_per_pixel(encoding));
+      for (int i = 0; i < height; i++) {
+        memcpy(dst + i * dst_step, (char *)dmabuf->addr() + i * line_size, dst_step);
+      }
+    } else if (encoding == "nv12") {
+      // copy Y channel
+      for (int i = 0; i < height; i++) {
+        memcpy(dst + i * dst_step, (char *)dmabuf->addr() + i * align_width(width), width);
+      }
+      // copy UV channel
+      auto offset = align_width(width) * align_height(height);
+      for (int i = 0; i < (height + 1) / 2; i++) {
+        memcpy(dst + (height + i) * dst_step,
+            (char *)dmabuf->addr() + offset + i * align_width(width), width);
+      }
+    } else {
+      RCLCPP_ERROR(rclcpp::get_logger("qrb_ros_transport"), "encoding not support");
+      return false;
+    }
   }
 
   if (!dmabuf->sync_end() || !dmabuf->unmap()) {
