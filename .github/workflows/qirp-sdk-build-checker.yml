@@ -83,7 +83,7 @@ jobs:
           build_dir=${PERSIST_DIR}/builds/${GITHUB_RUN_ID}
           mkdir -p $build_dir
 
-          tar -cvf ${build_dir}/artifacts.tar ${WORKSPACE}/install ${WORKSPACE}/build ${WORKSPACE}/log
+          tar -cvf ${build_dir}/${{ github.event.repository.name }}-${MACHINE}-${DISTRO}-${QCOM_SELECTED_BSP}-artifacts.tar --transform "s|^${WORKSPACE}/||" -C ${WORKSPACE} install build log
           ##########################debug###############################
           ls -al  ${build_dir}
 
