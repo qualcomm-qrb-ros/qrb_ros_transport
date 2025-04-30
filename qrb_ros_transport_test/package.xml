@@ -13,10 +13,11 @@
   <depend>rclcpp_components</depend>
   <depend>qrb_ros_transport_image_type</depend>
   <depend>qrb_ros_transport_imu_type</depend>
-
   <depend>qrb_ros_transport_point_cloud2_type</depend>
-  <depend>PCL</depend>
   <depend>pcl_conversions</depend>
+
+  <exec_depend>libpcl-common</exec_depend>
+  <exec_depend>libpcl-io</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
