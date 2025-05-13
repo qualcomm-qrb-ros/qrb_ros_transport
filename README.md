@@ -21,7 +21,7 @@ For the Qualcomm QCLinux platform, we provide two ways to build this package.
 
     ```bash
     cd ~/qrb_ros_ws/src/qrb_ros_docker/scripts && \
-    bash docker_run.sh
+    bash docker_run_qclinux.sh
 
     git clone https://github.com/qualcomm-qrb-ros/lib_mem_dmabuf.git
     git clone https://github.com/qualcomm-qrb-ros/qrb_ros_imu.git
@@ -55,6 +55,17 @@ For the Qualcomm QCLinux platform, we provide two ways to build this package.
       -DCMAKE_MAKE_PROGRAM=/usr/bin/make \
       -DBUILD_TESTING=OFF
     ```
+
+4. Install ROS package to device
+
+   ```bash
+   cd install
+   tar czvf qrb_ros_transport.tar.gz include lib share
+   scp qrb_ros_transport.tar.gz root@[ip-addr]:~
+   ssh root@[ip-addr]
+   (ssh) mount -o remount,rw /usr
+   (ssh) tar --no-same-owner -zxf ~/qrb_ros_transport.tar.gz -C /usr/
+   ```
 
 </details>
 
