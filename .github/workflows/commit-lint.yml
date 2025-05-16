@@ -1,0 +1,7 @@
+name: CI Linters for Pull Requets
+
+on: [push, pull_request]
+
+jobs:
+  commitlint:
+    uses: qualcomm-qrb-ros/.github/.github/workflows/commitlint.yml@commitlint
