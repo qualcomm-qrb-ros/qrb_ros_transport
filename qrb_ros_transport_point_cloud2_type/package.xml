@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>qrb_ros_transport_point_cloud2_type</name>
-  <version>1.0.0</version>
+  <version>1.3.0</version>
   <description>Type Adaption for PointCloud2 on Qualcomm robotics platforms</description>
   <maintainer email="penwang@qti.qualcomm.com">Peng Wang</maintainer>
   <license>BSD-3-Clause</license>
