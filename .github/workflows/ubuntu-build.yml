@@ -1,0 +1,13 @@
+name: Build QRB ROS packages on Ubuntu
+
+on:
+    push:
+    pull_request:
+
+env:
+    ROS_WS: ${{ github.workspace }}/ros2_ws/
+    ROS_SRC: ${{ github.workspace }}/ros2_ws/src
+
+jobs:
+  ros-build:
+    uses: qualcomm-qrb-ros/.github/.github/workflows/ubuntu-build.yml@ubuntu-build
