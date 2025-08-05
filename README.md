@@ -1,71 +1,94 @@
-# QRB ROS Transport
+<div align="center">
+  <h1>QRB ROS Transport</h1>
+  <p align="center">
+  </p>
+  <p>QRB ROS Transport is designed for zero-copy transporting ROS messages on Qualcomm robotics platforms.</p>
 
-## Overview
+  <a href="https://ubuntu.com/download/qualcomm-iot" target="_blank"><img src="https://img.shields.io/badge/Qualcomm%20Ubuntu-E95420?style=for-the-badge&logo=ubuntu&logoColor=white" alt="Qualcomm Ubuntu"></a>
+  <a href="https://docs.ros.org/en/jazzy/" target="_blank"><img src="https://img.shields.io/badge/ROS%20Jazzy-1c428a?style=for-the-badge&logo=ros&logoColor=white" alt="Jazzy"></a>
 
-[QRB ROS Transport](https://github.com/qualcomm-qrb-ros/qrb_ros_transport) is designed for zero-copy transporting ROS messages on Qualcomm robotics platforms.
+</div>
 
- It is implemented based on [REP 2007](https://ros.org/reps/rep-2007.html), which provides interfaces to define methods for serializing custom types and/or using those types in intra-process communication without conversion.
+---
 
-## Getting Started
+## 👋 Overview
 
-### Build
+The [qrb_ros_transport](https://github.com/qualcomm-qrb-ros/qrb_ros_transport) is designed for zero-copy transporting ROS messages on Qualcomm robotics platforms.
 
-For the Qualcomm QCLinux platform, we provide two ways to build this package.
+It is implemented based on [REP 2007](https://ros.org/reps/rep-2007.html), which provides interfaces to define methods for serializing custom types and/or using those types in intra-process communication without conversion.
 
-<details>
-<summary>On-Device Compilation with Docker</summary>
+<div align="center">
+  <img src="./docs/assets/architecture.png" alt="architecture">
+</div>
 
-1. Set up the QCLinux Docker environment following the [QRB ROS Docker Setup](https://github.com/qualcomm-qrb-ros/qrb_ros_docker?tab=readme-ov-file#quickstart).
+<br>
 
-2. Clone and build the source code:
+The `qrb_ros_transport` sends image DMA buffer file descriptors (fd) between ROS nodes, rather than sending the image data itself.
 
-    ```bash
-    git clone https://github.com/qualcomm-qrb-ros/lib_mem_dmabuf.git
-    git clone https://github.com/qualcomm-qrb-ros/qrb_ros_imu.git
-    git clone https://github.com/qualcomm-qrb-ros/qrb_ros_transport.git
+Hardware accelerators, such as cameras, GPUs, and EVA, share image data zero-copy through mmap DMA buffers.
 
-    colcon build --packages-skip qrb_ros_transport_test
-    ```
+## 🔎 Table of contents
+  * [Supported types](#-supported-types)
+  * [Supported targets](#-supported-targets)
+  * [Installation](#-installation)
+  * [Usage](#-usage)
+  * [Build from source](#-build-from-source)
+  * [Contributing](#-contributing)
+  * [Contributors](#%EF%B8%8F-contributors)
+  * [License](#-license)
 
-</details>
+## ⚓ Supported types
 
-<details><summary>Cross Compilation with QIRP SDK</summary>
+| QRB ROS Transport Type          | ROS Interfaces          |
+| :------------------------------- | :----------------------- |
+| [qrb_ros::transport::type::Image](./qrb_ros_transport_image_type/include/qrb_ros_transport_image_type/image.hpp) | [sensor_msgs::msg::Image](https://github.com/ros2/common_interfaces/blob/rolling/sensor_msgs/msg/Image.msg) |
+| [qrb_ros::transport::type::Imu](./qrb_ros_transport_imu_type/include/qrb_ros_transport_imu_type/imu.hpp) | [sensor_msgs::msg::Imu](https://github.com/ros2/common_interfaces/blob/rolling/sensor_msgs/msg/Imu.msg) |
+| [qrb_ros::transport::type::PointCloud2](./qrb_ros_transport_point_cloud2_type/include/qrb_ros_transport_point_cloud2_type/point_cloud2.hpp) | [sensor_msgs::msg::PointCloud2](https://github.com/ros2/common_interfaces/blob/rolling/sensor_msgs/msg/PointCloud2.msg) |
 
-1. Set up the QIRP SDK environment: Refer to [QRB ROS Documents: Getting Started](https://qualcomm-qrb-ros.github.io/main/getting_started/environment_setup.html).
 
-2. Create a workspace and clone the source code:
+## 🎯 Supported targets
 
-    ```bash
-    mkdir -p <qirp_decompressed_workspace>/qirp-sdk/ros_ws
-    cd <qirp_decompressed_workspace>/qirp-sdk/ros_ws
+<table >
+  <tr>
+    <th>Development Hardware</th>
+    <td>Qualcomm Dragonwing™ RB3 Gen2</td>
+    <td>Qualcomm Dragonwing™ IQ-9075 EVK</td>
+  </tr>
+  <tr>
+    <th>Hardware Overview</th>
+    <th><a href="https://www.qualcomm.com/developer/hardware/rb3-gen-2-development-kit"><img src="https://s7d1.scene7.com/is/image/dmqualcommprod/rb3-gen2-carousel?fmt=webp-alpha&qlt=85" width="180"/></a></th>
+    <th><a href="https://www.qualcomm.com/products/internet-of-things/industrial-processors/iq9-series/iq-9075"><img src="https://s7d1.scene7.com/is/image/dmqualcommprod/dragonwing-IQ-9075-EVK?$QC_Responsive$&fmt=png-alpha" width="160"></a></th>
+  </tr>
+</table>
 
-    git clone https://github.com/qualcomm-qrb-ros/qrb_ros_transport.git
-    ```
+---
 
-3. Build the source code with QIRP SDK:
+## ✨ Installation
 
-    ```bash
-    colcon build --merge-install --packages-skip qrb_ros_transport_test --cmake-args ${CMAKE_ARGS}
-    ```
+> [!IMPORTANT]
+> **PREREQUISITES**: The following steps need to be run on **Qualcomm Ubuntu** and **ROS Jazzy**.<br>
+> Refer to [Install Ubuntu on Qualcomm IoT Platforms](https://ubuntu.com/download/qualcomm-iot) and [Install ROS Jazzy](https://docs.ros.org/en/jazzy/index.html) to set up your environment. <br>
+> For Qualcomm Linux, please check out the [Qualcomm Intelligent Robotics Product SDK](https://docs.qualcomm.com/bundle/publicresource/topics/80-70018-265/introduction_1.html?vproduct=1601111740013072&version=1.4&facet=Qualcomm%20Intelligent%20Robotics%20Product%20(QIRP)%20SDK) documents.
 
-4. Install ROS package to device
+Add Qualcomm IOT PPA for Ubuntu:
 
-   ```bash
-   cd install
-   tar czvf qrb_ros_transport.tar.gz include lib share
-   scp qrb_ros_transport.tar.gz root@[ip-addr]:~
-   ssh root@[ip-addr]
-   (ssh) mount -o remount,rw /usr
-   (ssh) tar --no-same-owner -zxf ~/qrb_ros_transport.tar.gz -C /usr/
-   ```
+```bash
+sudo add-apt-repository ppa:ubuntu-qcom-iot/qcom-noble-ppa
+sudo add-apt-repository ppa:ubuntu-qcom-iot/qirp
+sudo apt update
+```
 
-</details>
+Install Debian package:
 
-### Usage
+```bash
+sudo apt install ros-jazzy-qrb-ros-transport
+```
 
-This section shows how to use `qrb_ros_transport` in your projects, here take `qrb_ros::transport::type::Image` as an example.
+## 🚀 Usage
 
-Add dependencies in your `package.xml`:
+This section shows how to use `qrb_ros_transport` in your projects, Here, we use `qrb_ros::transport::type::Image` as an example.
+
+Add the dependencies in your `package.xml`:
 
 ```xml
 <depend>qrb_ros_transport_image_type</depend>
@@ -100,31 +123,35 @@ pub->publish(std::move(msg));
 ```
 </details>
 
-For more details, check out the documentation at [qualcomm-qrb-ros.github.io](https://qualcomm-qrb-ros.github.io/).
+---
 
-## Supported Types
+## 👨‍💻 Build from source
 
-The following table lists the currently supported types:
+Download the source code and build it with colcon
 
-| QRB ROS Transport Type          | ROS Interfaces          |
-| ------------------------------- | ----------------------- |
-| [qrb_ros::transport::type::Image](./qrb_ros_transport_image_type/include/qrb_ros_transport_image_type/image.hpp) | [sensor_msgs::msg::Image](https://github.com/ros2/common_interfaces/blob/rolling/sensor_msgs/msg/Image.msg) |
-| [qrb_ros::transport::type::Imu](./qrb_ros_transport_imu_type/include/qrb_ros_transport_imu_type/imu.hpp) | [sensor_msgs::msg::Imu](https://github.com/ros2/common_interfaces/blob/rolling/sensor_msgs/msg/Imu.msg) |
-| [qrb_ros::transport::type::PointCloud2](./qrb_ros_transport_point_cloud2_type/include/qrb_ros_transport_point_cloud2_type/point_cloud2.hpp) | [sensor_msgs::msg::PointCloud2](https://github.com/ros2/common_interfaces/blob/rolling/sensor_msgs/msg/PointCloud2.msg) |
+```bash
+source /opt/ros/jazzy/setup.bash
+git clone https://github.com/qualcomm-qrb-ros/qrb_ros_transport.git
+colcon build
+```
 
-## Contributing
+## 🤝 Contributing
 
-We would love to have you as a part of the QRB ROS community. Whether you are helping us fix bugs, proposing new features, improving our documentation, or spreading the word, please refer to our [contribution guidelines](./CONTRIBUTING.md) and [code of conduct](./CODE_OF_CONDUCT.md).
+We love community contributions! Get started by reading our [CONTRIBUTING.md](CONTRIBUTING.md).<br>
+Feel free to create an issue for bug report, feature requests or any discussion💡.
 
-- Bug report: If you see an error message or encounter failures, please create a [bug report](../../issues)
-- Feature Request: If you have an idea or if there is a capability that is missing and would make development easier and more robust, please submit a [feature request](../../issues)
+## ❤️ Contributors
 
-## Authors
+Thanks to all our contributors who have helped make this project better!
 
-* **Peng Wang** - *Maintainer* - [@penww](https://github.com/penww)
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/penww"><img src="https://avatars.githubusercontent.com/u/97950764?v=4" width="100" height="100" alt="penww"/><br /><sub><b>penww</b></sub></a></td>
+    <td align="center"><a href="https://github.com/jiaxshi"><img src="https://avatars.githubusercontent.com/u/147487233?v=4" width="100" height="100" alt="jiaxshi"/><br /><sub><b>jiaxshi</b></sub></a></td>
+    <td align="center"><a href="https://github.com/quic-zhaoyuan"><img src="https://avatars.githubusercontent.com/u/164289792?v=4" width="100" height="100" alt="quic-zhaoyuan"/><br /><sub><b>quic-zhaoyuan</b></sub></a></td>
+  </tr>
+</table>
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+## 📜 License
 
-## License
-
-Project is licensed under the [BSD-3-Clause License](https://spdx.org/licenses/BSD-3-Clause.html). See [LICENSE](./LICENSE) for the full license text.
+Project is licensed under the [BSD-3-Clause](https://spdx.org/licenses/BSD-3-Clause.html) License. See [LICENSE](./LICENSE) for the full license text.
