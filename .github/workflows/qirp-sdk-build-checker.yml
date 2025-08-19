@@ -8,3 +8,5 @@ jobs:
     # with:
     #   dependencies: qualcomm-qrb-ros/qrb_ros_interfaces
     #   colcon_args:  --cmake-clean-first
+    with:
+      colcon_args: --packages-skip qrb_ros_transport_test
