@@ -1,4 +1,4 @@
-name: CI Linters for Pull Requets
+name: Commit Lint Checker for Pull Requets
 
 on: [push, pull_request]
 

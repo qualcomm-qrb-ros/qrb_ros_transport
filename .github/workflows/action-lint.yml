@@ -1,4 +1,4 @@
-name: Lint Actions Workflows
+name: Action Linter Workflows
 
 on:
   push:
