@@ -1,4 +1,4 @@
-name: Build QRB ROS packages on Ubuntu
+name: Standard ROS Build Checker
 
 on:
     push:

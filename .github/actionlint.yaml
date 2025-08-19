@@ -1,7 +1,14 @@
 self-hosted-runner:
   # Labels of self-hosted runner in array of strings.
-  labels: [self-hosted, x86]
-
+  labels:
+    - x86
+    - arm64
+    - amd64
+    - amd64-8x
+    - amd64-16x
+    - arm64-16x
+    - arm64-8x
+    - qcom-u2404
 # Configuration variables in array of strings defined in your repository or
 # organization. `null` means disabling configuration variables check.
 # Empty array means no configuration variable is allowed.
