@@ -1,5 +1,10 @@
 # Changelog for package qrb_ros_transport
 
+## 1.3.1-jazzy (2025-09-01)
+
+- Refactor documents to support Ubuntu as Tie 1 platform
+- Contributors: Peng Wang, Zhanye Lin
+
 ## 1.3.0-jazzy (2025-05-19)
 
 - Add end to end test components ([#6](https://github.com/qualcomm-qrb-ros/qrb_ros_transport/pull/6))
