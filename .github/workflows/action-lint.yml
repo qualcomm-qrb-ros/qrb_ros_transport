@@ -3,18 +3,7 @@ name: Action Linter Workflows
 on:
   push:
   pull_request:
-  workflow_dispatch:
 
 jobs:
   actionlint:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Run Rhysd actionlint
-      id: rhysd_actionlint
-      uses: devops-actions/actionlint@v0.1.9
-      with:
-        shellcheck_opts: "--exclude=SC2086"
+    uses: qualcomm-qrb-ros/qrb_ros_gh_actions/.github/workflows/action-lint.yml@main
