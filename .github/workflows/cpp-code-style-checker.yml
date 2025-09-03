@@ -4,33 +4,4 @@ on: [push, pull_request, workflow_dispatch]
 
 jobs:
   cpp-code-style-check:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Install clang-format
-      run: sudo apt install -y clang-format
-
-    - name: Setup clang-format configuration
-      run: |
-        if [ ! -f ./.clang-format ]; then
-          echo "No .clang-format found, will use default configuration"
-          curl -o .clang-format https://raw.githubusercontent.com/qualcomm-qrb-ros/.github/main/code-style-profiles/.clang-format
-        fi
-
-    - name: Check code style
-      run: |
-        SRC=$(git ls-tree --full-tree -r HEAD | grep -e "\.\(c\|h\|hpp\|cpp\)\$" | cut -f 2)
-
-        echo -e "Check source files: \n$SRC\n"
-        clang-format -style=file -i $SRC
-
-        if ! git diff --exit-code; then
-          echo -e "\nCode does not match required style !!!"
-          echo "Please use clang-format to format your code."
-          exit 1
-        else
-          echo "All files are properly formatted."
-        fi
+    uses: qualcomm-qrb-ros/qrb_ros_gh_actions/.github/workflows/cpp-code-style-checker.yml@main

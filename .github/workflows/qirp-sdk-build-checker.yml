@@ -4,9 +4,6 @@ on: [push, pull_request]
 
 jobs:
   qirp-sdk-build-checker:
-    uses: qualcomm-qrb-ros/.github/.github/workflows/qirp-sdk-build-checker.yml@qirp-sdk-build
-    # with:
-    #   dependencies: qualcomm-qrb-ros/qrb_ros_interfaces
-    #   colcon_args:  --cmake-clean-first
+    uses: qualcomm-qrb-ros/qrb_ros_gh_actions/.github/workflows/qirp-sdk-build-checker.yml@main
     with:
       colcon_args: --packages-skip qrb_ros_transport_test

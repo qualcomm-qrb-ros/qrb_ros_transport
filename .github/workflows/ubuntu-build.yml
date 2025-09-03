@@ -10,7 +10,7 @@ env:
 
 jobs:
   ros-build:
-    uses: qualcomm-qrb-ros/.github/.github/workflows/ubuntu-build.yml@ubuntu-build
-    with:
-      # QRB ROS dependency
-      dependencies: "qualcomm-qrb-ros/lib_mem_dmabuf qualcomm-qrb-ros/qrb_ros_imu"
+    uses: qualcomm-qrb-ros/qrb_ros_gh_actions/.github/workflows/ubuntu-build.yml@main
+    # with:
+    #   # QRB ROS dependency
+    #   dependencies: "qualcomm-qrb-ros/qrb_ros_transport qualcomm-qrb-ros/lib_mem_dmabuf"
