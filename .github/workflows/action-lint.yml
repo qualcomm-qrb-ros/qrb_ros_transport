@@ -1,0 +1,9 @@
+name: Action Linter Workflows
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  actionlint:
+    uses: qualcomm-qrb-ros/qrb_ros_gh_actions/.github/workflows/action-lint.yml@main

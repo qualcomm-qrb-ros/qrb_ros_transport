@@ -1,0 +1,16 @@
+name: Standard ROS Build Checker
+
+on:
+    push:
+    pull_request:
+
+env:
+    ROS_WS: ${{ github.workspace }}/ros2_ws/
+    ROS_SRC: ${{ github.workspace }}/ros2_ws/src
+
+jobs:
+  ros-build:
+    uses: qualcomm-qrb-ros/qrb_ros_gh_actions/.github/workflows/ubuntu-build.yml@main
+    # with:
+    #   # QRB ROS dependency
+    #   dependencies: "qualcomm-qrb-ros/qrb_ros_transport qualcomm-qrb-ros/lib_mem_dmabuf"

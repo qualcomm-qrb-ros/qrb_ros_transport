@@ -1,0 +1,7 @@
+name: Commit Lint Checker for Pull Requets
+
+on: [push, pull_request]
+
+jobs:
+  commitlint:
+    uses: qualcomm-qrb-ros/qrb_ros_gh_actions/.github/workflows/commit-lint.yml@main
