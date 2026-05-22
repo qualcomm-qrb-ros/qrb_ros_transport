@@ -1,5 +1,11 @@
 # Changelog for package qrb_ros_transport
 
+## 1.3.2 (2026-05-22)
+
+- Migrate reusable workflows to qrb_ros_gh_actions ([#36](https://github.com/qualcomm-qrb-ros/qrb_ros_transport/pull/36))
+- Update ppa link ([#40](https://github.com/qualcomm-qrb-ros/qrb_ros_transport/pull/40))
+- Contributors: Peng Wang, Jiaxing Shi
+
 ## 1.3.1-jazzy (2025-09-01)
 
 - Refactor documents to support Ubuntu as Tie 1 platform
