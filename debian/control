@@ -1,0 +1,12 @@
+Source: ros-jazzy-qrb-ros-transport-test
+Section: misc
+Priority: optional
+Maintainer: Peng Wang <penwang@qti.qualcomm.com>
+Build-Depends: debhelper-compat (= 13), ros-jazzy-ament-cmake-auto, ros-jazzy-ament-lint-auto <!nocheck>, ros-jazzy-ament-lint-common <!nocheck>, ros-jazzy-pcl-conversions, ros-jazzy-qrb-ros-transport-image-type, ros-jazzy-qrb-ros-transport-imu-type, ros-jazzy-qrb-ros-transport-point-cloud2-type, ros-jazzy-rclcpp, ros-jazzy-rclcpp-components
+Homepage: 
+Standards-Version: 3.9.2
+
+Package: ros-jazzy-qrb-ros-transport-test
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libpcl-common1.14, libpcl-io1.14, ros-jazzy-pcl-conversions, ros-jazzy-qrb-ros-transport-image-type, ros-jazzy-qrb-ros-transport-imu-type, ros-jazzy-qrb-ros-transport-point-cloud2-type, ros-jazzy-rclcpp, ros-jazzy-rclcpp-components
+Description: Test for QRB ROS transport
