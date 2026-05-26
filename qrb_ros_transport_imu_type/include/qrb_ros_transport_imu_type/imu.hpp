@@ -4,7 +4,7 @@
 #ifndef QRB_ROS_TRANSPORT_IMU_TYPE__IMU_HPP_
 #define QRB_ROS_TRANSPORT_IMU_TYPE__IMU_HPP_
 
-#include "qrb_sensor_client/sensor_client.hpp"
+#include "qrb_ros_transport_imu_type/sns_direct_channel_buffer.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/type_adapter.hpp"
 #include "sensor_msgs/msg/imu.hpp"

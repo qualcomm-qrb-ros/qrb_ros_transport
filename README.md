@@ -131,13 +131,12 @@ pub->publish(std::move(msg));
 Install dependencies `ros-dev-tools`:
 
 ```shell
-sudo add-apt-repository ppa:ubuntu-qcom-iot/qcom-noble-ppa
+sudo add-apt-repository ppa:ubuntu-qcom-iot/qcom-ppa
 sudo add-apt-repository ppa:ubuntu-qcom-iot/qirp
 sudo apt update
 
 sudo apt install ros-dev-tools \
   ros-jazzy-lib-mem-dmabuf \
-  ros-jazzy-qrb-sensor-client \
   ros-jazzy-pcl-conversions
 ```
 
