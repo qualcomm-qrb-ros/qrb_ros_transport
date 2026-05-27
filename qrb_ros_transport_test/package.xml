@@ -7,7 +7,7 @@
   <maintainer email="penwang@qti.qualcomm.com">Peng Wang</maintainer>
   <license>BSD-3-Clause</license>
 
-  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_auto</buildtool_depend>
 
   <depend>rclcpp</depend>
   <depend>rclcpp_components</depend>
