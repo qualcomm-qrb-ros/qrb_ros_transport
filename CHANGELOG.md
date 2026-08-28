@@ -1,5 +1,15 @@
 # Changelog for package qrb_ros_transport
 
+## 1.4.0 (2026-08-28)
+
+- docs: remove RB3 Gen2 from supported targets
+- ci: delegate preflight checks to qrb_ros_gh_actions reusable workflow
+- feat: support image bgr8 format
+- fix: replace pull_request_target with pull_request
+- fix: correct build tool depend
+- refactor: remove sensor_client dependency
+- Contributors: Peng Wang, Jiaxing Shi, Fulan Liu, dapeyuan
+
 ## 1.3.2 (2026-05-22)
 
 - Migrate reusable workflows to qrb_ros_gh_actions ([#36](https://github.com/qualcomm-qrb-ros/qrb_ros_transport/pull/36))
