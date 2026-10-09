@@ -17,6 +17,8 @@ namespace qrb_ros::transport::image_utils
 std::map<std::string, float> supported_encodings = {
   { sensor_msgs::image_encodings::RGB8, 3 },
   { sensor_msgs::image_encodings::BGR8, 3 },
+  { sensor_msgs::image_encodings::MONO8, 1 },
+  { sensor_msgs::image_encodings::TYPE_16UC1, 2 },
   { "nv12", 1.5 },
 };
 
@@ -81,7 +83,9 @@ int get_image_stride(int width, const std::string & encoding)
     throw std::runtime_error("unsupported encoding " + encoding);
   }
   if (encoding == sensor_msgs::image_encodings::RGB8 ||
-      encoding == sensor_msgs::image_encodings::BGR8) {
+      encoding == sensor_msgs::image_encodings::BGR8 ||
+      encoding == sensor_msgs::image_encodings::MONO8 ||
+      encoding == sensor_msgs::image_encodings::TYPE_16UC1) {
     return align_width(width) * bytes_per_pixel(encoding);
   }
   if (encoding == "nv12") {
@@ -112,7 +116,9 @@ bool save_image_to_dmabuf(std::shared_ptr<lib_mem_dmabuf::DmaBuffer> dmabuf,
     memcpy(dmabuf->addr(), data, src_step * height * bytes_per_pixel(encoding));
   } else {
     if (encoding == sensor_msgs::image_encodings::RGB8 ||
-        encoding == sensor_msgs::image_encodings::BGR8) {
+        encoding == sensor_msgs::image_encodings::BGR8 ||
+        encoding == sensor_msgs::image_encodings::MONO8 ||
+        encoding == sensor_msgs::image_encodings::TYPE_16UC1) {
       int line_size = std::ceil(align_width(width) * bytes_per_pixel(encoding));
       for (int i = 0; i < height; i++) {
         memcpy((char *)dmabuf->addr() + i * line_size, (char *)data + i * src_step,
@@ -165,7 +171,9 @@ bool read_image_from_dmabuf(std::shared_ptr<lib_mem_dmabuf::DmaBuffer> dmabuf,
     memcpy(dst, dmabuf->addr(), dst_step * height * bytes_per_pixel(encoding));
   } else {
     if (encoding == sensor_msgs::image_encodings::RGB8 ||
-        encoding == sensor_msgs::image_encodings::BGR8) {
+        encoding == sensor_msgs::image_encodings::BGR8 ||
+        encoding == sensor_msgs::image_encodings::MONO8 ||
+        encoding == sensor_msgs::image_encodings::TYPE_16UC1) {
       int line_size = std::ceil(align_width(width) * bytes_per_pixel(encoding));
       for (int i = 0; i < height; i++) {
         memcpy(dst + i * dst_step, (char *)dmabuf->addr() + i * line_size, dst_step);
