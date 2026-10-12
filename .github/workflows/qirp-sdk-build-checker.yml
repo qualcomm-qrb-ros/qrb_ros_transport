@@ -1,6 +1,10 @@
 name: QIRP Build Test
 
-on: [push, pull_request]
+on:
+  workflow_dispatch:
+  # Temporarily disabled during Lyrical migration
+  # push:
+  # pull_request:
 
 jobs:
   qirp-sdk-build-checker:
